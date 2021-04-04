@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31025.194
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BtcMiner", "BtcMiner\BtcMiner.csproj", "{B02563D3-FDF7-4235-A972-AD2145F37D3E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B02563D3-FDF7-4235-A972-AD2145F37D3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B02563D3-FDF7-4235-A972-AD2145F37D3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B02563D3-FDF7-4235-A972-AD2145F37D3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B02563D3-FDF7-4235-A972-AD2145F37D3E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D5E46DBB-A9D5-4B74-B56E-9FE5D20F904F}
+	EndGlobalSection
+EndGlobal
