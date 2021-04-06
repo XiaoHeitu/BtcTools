@@ -7,10 +7,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Text.Json;
 using System.IO;
+using System.Collections.Concurrent;
 
 namespace BtcMiner
 {
-    public class StratumMiner : Miner
+    public class StratumMiner
     {
         TcpPushClient client;
 
@@ -51,7 +52,7 @@ namespace BtcMiner
             this.user = user;
             this.password = password;
 
-            this.client = new TcpPushClient(40960);
+            this.client = new TcpPushClient(409600);
             this.client.OnReceive += this.Client_OnReceive;
             this.client.OnClose += this.Client_OnClose;
             this.client.OnConnect += this.Client_OnConnect;
@@ -143,29 +144,33 @@ namespace BtcMiner
             this.client.Connect(this.host, this.port);
         }
 
+
+        string receiveStr = "";
         /// <summary>
         /// 分析接收数据
         /// </summary>
         /// <param name="data"></param>
         private void AnalysisReceive(byte[] data)
         {
-            var dataStr = Encoding.UTF8.GetString(data);
-            var jsons = dataStr.Split('\n');
-            for (int i = 0; i < jsons.Length; i++)
+            var jsons = (receiveStr + Encoding.UTF8.GetString(data)).Split('\n');
+            receiveStr = jsons.Last();
+
+
+            for (int i = 0; i < jsons.Length - 1; i++)
             {
                 var json = jsons[i];
 
                 using (JsonDocument doc = JsonDocument.Parse(json))
                 {
                     var ok = doc.RootElement.TryGetProperty("id", out var id);
-                    if (ok && id.GetInt32() == 1)
+                    if (ok && id.ValueKind == JsonValueKind.Number && id.GetInt32() == 1)
                     {
                         this.AnalysisSubscribeResult(doc);
                         continue;
                     }
 
                     ok = doc.RootElement.TryGetProperty("method", out var method);
-                    if (ok && method.GetString() == "mining.notify")
+                    if (ok && method.ValueKind == JsonValueKind.String && method.GetString() == "mining.notify")
                     {
                         this.AnalysisNotify(doc);
                     }
@@ -177,7 +182,8 @@ namespace BtcMiner
             var ok = doc.RootElement.TryGetProperty("result", out var result);
             if (ok)
             {
-                this.extraNonce1 = this.HexToBytes(result[1].GetString());
+                this.extraNonce1 = MinerUilts.HexToBytes(result[1].GetString());
+
                 this.extraNonce2Size = result[2].GetUInt32();
             }
 
@@ -189,35 +195,21 @@ namespace BtcMiner
             if (ok)
             {
                 this.taskID = @params[0].GetString();
-                this.prevHash = this.HexToBytes(@params[1].GetString());
-                var coinbase1 = this.HexToBytes(@params[2].GetString());
-                var coinbase2 = this.HexToBytes(@params[3].GetString());
+                this.prevHash = MinerUilts.HexToBytes(@params[1].GetString());
+
+                var coinbase1 = MinerUilts.HexToBytes(@params[2].GetString());
+                var coinbase2 = MinerUilts.HexToBytes(@params[3].GetString());
                 var coinbase = this.GetCoinbase(coinbase1, this.extraNonce1, coinbase2);
-                var merkles = @params[4].EnumerateArray().Select(d => this.HexToBytes(d.GetString())).ToArray();
-                this.merkleRoot = this.GetMerkleRoot(coinbase, merkles);
-                this.version = this.HexToBytes(@params[5].GetString());
-                this.bits = this.HexToBytes(@params[6].GetString());
-                this.time = this.HexToBytes(@params[7].GetString());
+                var merkles = @params[4].EnumerateArray().Select(d => MinerUilts.HexToBytes(d.GetString())).ToArray();
+                this.merkleRoot = MinerUilts.GetMerkleRoot(coinbase, merkles);
+
+                this.version = MinerUilts.HexToBytes(@params[5].GetString());
+
+                this.bits = MinerUilts.HexToBytes(@params[6].GetString());
+                this.target = MinerUilts.BitsToTarget(this.bits);
+
+                this.time = MinerUilts.HexToBytes(@params[7].GetString());
             }
-        }
-
-
-
-        /// <summary>
-        /// Hex字符串转字节数组
-        /// </summary>
-        /// <param name="hex"></param>
-        /// <returns></returns>
-        private byte[] HexToBytes(string hex)
-        {
-            var length = hex.Length / 2;
-            byte[] result = new byte[length];
-            for (var i = 0; i < length; i++)
-            {
-                result[i] = byte.Parse(hex.Substring(i * 2, 2), System.Globalization.NumberStyles.HexNumber);
-            }
-
-            return result;
         }
     }
 }

@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace BtcMiner
 {
-    public class Miner
+    public class MinerUilts
     {
         /// <summary>
         /// 获取新块
@@ -20,7 +21,7 @@ namespace BtcMiner
         /// <param name="targetBits">难度目标(4字节)</param>
         /// <param name="nonce">随机数(4字节)</param>
         /// <returns>新块</returns>
-        protected byte[] GetNewBlock(byte[] version, byte[] prevHash, byte[] merkleRoot, byte[] time, byte[] targetBits, byte[] nonce)
+        public static byte[] GetNewBlock(byte[] version, byte[] prevHash, byte[] merkleRoot, byte[] time, byte[] targetBits, byte[] nonce)
         {
             byte[] blockHeader = new byte[80];
             version.CopyTo(blockHeader, 0);
@@ -38,7 +39,7 @@ namespace BtcMiner
         /// </summary>
         /// <param name="merkles">交易列表(每交易64字节)</param>
         /// <returns>交易树(32字节)</returns>
-        protected byte[] GetMerkleRoot(byte[] coinbase, IList<byte[]> merkles)
+        public static byte[] GetMerkleRoot(byte[] coinbase, IList<byte[]> merkles)
         {
             List<byte[]> ordered = merkles.OrderBy(d => BitConverter.ToUInt64(d)).ToList();
 
@@ -47,17 +48,17 @@ namespace BtcMiner
                 ordered.Insert(0, coinbase);
             }
 
-            if (ordered.Count % 2 == 1)
-            {
-                ordered.Add(ordered.Last());
-            }
-
-            var result = this.GetMerkleRootHashs(ordered);
+            var result = GetMerkleRootHashs(ordered);
             return result[0];
         }
 
-        private IList<byte[]> GetMerkleRootHashs(IList<byte[]> merkleHashs)
+        private static IList<byte[]> GetMerkleRootHashs(IList<byte[]> merkleHashs)
         {
+            if (merkleHashs.Count % 2 == 1)
+            {
+                merkleHashs.Add(merkleHashs.Last());
+            }
+
             IList<byte[]> results = new List<byte[]>();
             for (int i = 0; i < merkleHashs.Count; i += 2)
             {
@@ -72,7 +73,7 @@ namespace BtcMiner
 
             if (results.Count > 1)
             {
-                results = this.GetMerkleRootHashs(results);
+                results = GetMerkleRootHashs(results);
             }
 
             return results;
@@ -92,15 +93,40 @@ namespace BtcMiner
         /// </summary>
         /// <param name="bits">Bits(8字节)</param>
         /// <returns>目标难度</returns>
-        private byte[] BitsToTarget(byte[] bits)
+        public static byte[] BitsToTarget(byte[] bits)
         {
             //以十六进制表示，总共有8位，前2位为指数，后6位为系数
             //难度值（target） = 系数 * 2^(8 * (指数 - 3))
-            var 指数 = BitConverter.ToUInt64(bits[0..1]);
-            var 系数 = BitConverter.ToUInt64(bits[2..7]);
-            var target = BitConverter.GetBytes(系数 * 2 ^ (8 * (指数 - 3)));
+            var intbits = BitConverter.ToInt32(bits.Reverse().ToArray());
 
-            return target;
+            //解析bits
+            var factor = intbits & 0x00FFFFFF;
+            var power = intbits >> 24;
+
+            power = 8 * (power - 3);
+
+            var target = factor * Math.Pow(2, power);
+
+            var bigInteger = factor * BigInteger.Pow(2, power);
+            var str= BitConverter.ToString(bigInteger.ToByteArray()).Replace("-", ""); ;
+            return null;
+        }
+
+        /// <summary>
+        /// Hex字符串转字节数组
+        /// </summary>
+        /// <param name="hex"></param>
+        /// <returns></returns>
+        public static byte[] HexToBytes(string hex)
+        {
+            var length = hex.Length / 2;
+            byte[] result = new byte[length];
+            for (var i = 0; i < length; i++)
+            {
+                result[i] = byte.Parse(hex.Substring(i * 2, 2), System.Globalization.NumberStyles.HexNumber);
+            }
+
+            return result;
         }
     }
 }

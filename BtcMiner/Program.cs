@@ -11,8 +11,11 @@ namespace BtcMiner
         static void Main(string[] args)
         {
             StratumMiner m = new StratumMiner("ss.antpool.com",3333,"ywj6792341BTC.001","x");
-            
 
+            while (Console.ReadLine().ToUpper() != "EXIT")
+            {
+
+            }
             //Miner m = new Miner();
 
             //Stopwatch sw = Stopwatch.StartNew();
