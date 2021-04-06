@@ -10,7 +10,10 @@ namespace BtcMiner
         static object lockobj = new object();
         static void Main(string[] args)
         {
-            StratumMiner m = new StratumMiner("ss.antpool.com",3333,"ywj6792341BTC.001","x");
+            //StratumMiner m = new StratumMiner("ss.antpool.com",3333,"ywj6792341BTC.001","x");
+
+            var bits = MinerUilts.HexToBytes("1903a30c");
+            MinerUilts.BitsToTarget(bits);
 
             while (Console.ReadLine().ToUpper() != "EXIT")
             {
