@@ -108,8 +108,8 @@ namespace BtcMiner
             var target = factor * Math.Pow(2, power);
 
             var bigInteger = factor * BigInteger.Pow(2, power);
-            var str= BitConverter.ToString(bigInteger.ToByteArray(false,true)).Replace("-", "");
-            return null;
+            //var str= BitConverter.ToString(bigInteger.ToByteArray(false,true)).Replace("-", "");
+            return bigInteger.ToByteArray(true,false);
         }
 
         /// <summary>

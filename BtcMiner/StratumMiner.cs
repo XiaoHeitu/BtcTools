@@ -38,6 +38,8 @@ namespace BtcMiner
         //验证难度
         byte[] target;
 
+        MinerCore[] miners = null;
+
         /// <summary>
         /// Stratum矿工
         /// </summary>
@@ -56,6 +58,8 @@ namespace BtcMiner
             this.client.OnReceive += this.Client_OnReceive;
             this.client.OnClose += this.Client_OnClose;
             this.client.OnConnect += this.Client_OnConnect;
+
+
 
             this.Connect();
         }
@@ -209,7 +213,55 @@ namespace BtcMiner
                 this.target = MinerUilts.BitsToTarget(this.bits);
 
                 this.time = MinerUilts.HexToBytes(@params[7].GetString());
+
+                var stop = @params[8].GetBoolean();
+
+
+                this.StartMining(stop);
             }
+
+            MessageHelper.WriteLine(ConsoleColor.Yellow, $"收到新任务 { this.taskID}");
+        }
+
+        private void StartMining(bool stop)
+        {
+            var data = new MiningData()
+            {
+                extraNonce1 = this.extraNonce1,
+                extraNonce2Size = this.extraNonce2Size,
+                taskID = this.taskID,
+                prevHash = this.prevHash,
+                merkleRoot = this.merkleRoot,
+                version = this.version,
+                bits = this.bits,
+                time = this.time,
+                target = this.target,
+
+                extraNonce2 = new byte[] { 0, 0, 0, 0 }
+            };
+
+            if (this.miners == null)
+            {
+                this.miners = new MinerCore[4];
+                for (uint i = 0; i < this.miners.Length; i++)
+                {
+                    this.miners[i] = new MinerCore(data, i);
+                    this.miners[i].OnMiningSucceeded += this.StratumMiner_OnMiningSucceeded;
+                    this.miners[i].Start();
+                }
+            }
+            else
+            {
+                for (var i = 0; i < this.miners.Length; i++)
+                {
+                    this.miners[i].Update(data, stop);
+                }
+            }
+        }
+
+        private void StratumMiner_OnMiningSucceeded(MiningData data)
+        {
+            MessageHelper.WriteLine(ConsoleColor.Green, $"挖到矿了 nonce:{data.nonce} newblock:{data.newBlock}");
         }
     }
 }
