@@ -71,6 +71,7 @@ namespace BtcMiner
 
                 if (this.curData.taskID != this.newData.taskID)
                 {
+                    //存在新任务
                     this.curData = this.newData;
                 }
 
