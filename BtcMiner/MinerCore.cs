@@ -66,12 +66,18 @@ namespace BtcMiner
                         }
                     });
 
-                    this.Update(this.newData, true);
+                    //this.Update(this.newData, true);
+                }
+
+                if (this.curData.taskID != this.newData.taskID)
+                {
+                    this.curData = this.newData;
                 }
 
                 count++;
+                var time = sw.Elapsed.TotalSeconds;
 
-                if (count == 3000000)
+                if (time >= 10)
                 {
                     MessageHelper.WriteLine(ConsoleColor.Cyan, $"Miner{this.minerID} {count / sw.Elapsed.TotalSeconds / 1024:f3}KH/S");
                     count = 0;

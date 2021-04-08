@@ -54,7 +54,7 @@ namespace BtcMiner
             this.user = user;
             this.password = password;
 
-            this.client = new TcpPushClient(409600);
+            this.client = new TcpPushClient(4096);
             this.client.OnReceive += this.Client_OnReceive;
             this.client.OnClose += this.Client_OnClose;
             this.client.OnConnect += this.Client_OnConnect;
@@ -242,7 +242,7 @@ namespace BtcMiner
 
             if (this.miners == null)
             {
-                this.miners = new MinerCore[4];
+                this.miners = new MinerCore[1];
                 for (uint i = 0; i < this.miners.Length; i++)
                 {
                     this.miners[i] = new MinerCore(data, i);

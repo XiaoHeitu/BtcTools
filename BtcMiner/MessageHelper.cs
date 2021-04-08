@@ -15,10 +15,14 @@ namespace BtcMiner
         /// </summary>
         /// <param name="color">消息颜色</param>
         /// <param name="message">消息内容</param>
-        public static void Write(ConsoleColor color, string message)
+        public static void Write(ConsoleColor color, string message, bool time)
         {
             lock (lockobj)
             {
+                if (time)
+                {
+                    Console.Write($"[{ DateTime.Now:yyyy-MM-dd HH:mm:ss}]");
+                }
                 Console.ForegroundColor = color;
                 Console.Write(message);
                 Console.ResetColor();
@@ -34,6 +38,7 @@ namespace BtcMiner
         {
             lock (lockobj)
             {
+                Console.Write($"[{ DateTime.Now:yyyy-MM-dd HH:mm:ss}]");
                 Console.ForegroundColor = color;
                 Console.WriteLine(message);
                 Console.ResetColor();
